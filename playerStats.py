@@ -1,28 +1,37 @@
 from bs4 import BeautifulSoup
-from array import *
-import urllib2
-import sys
-import string
-url="http://www.michigantechhuskies.com/sports/mice/2013-14/bios/anderson_patrick_nv62?view=gamelog"
-page= urllib2.urlopen(url)
-soup = BeautifulSoup(page.read())
-bio = "Player's Bio"
-name = soup.findAll('div',{'class':'name'})
-stats = soup.findAll('td',{'class':'align-center'})
+import urllib
+ 
+url = 'http://www.michigantechhuskies.com/sports/mice/2013-14/bios/anderson_patrick_nv62?view=gamelog'
+soup = BeautifulSoup(urllib.urlopen(url).read())
+ 
+rows = soup.find('div', {"class":"stats-fullbox"}).find_all('tr')
+
 count = 0
-check  = 0
-playername = ""
-for eachname in name:
-	playername = eachname
+for name in soup.find_all('span',{'class':'name'}):
+	count += 1
+	if(count == 1):
+		name = name.string
+
 f = open('game.txt', 'w')
-f.write(playername)
-f.write("\n")
-for eachstat in stats:
-	f.write(eachstat)
-	f.write(" ")
-	count = count + 1
-	check = check + 1
-	if check == 12:
-		f.write("\n")
-		check = 0 	
-f.close()
+f.write(name + '\n')
+i = 0
+j = 0
+data = []
+for row in rows[1:]:
+    row = row.find_all('td')
+    if row[2].text.strip() == '': # If the game has no score, we're at the last game
+        break
+    line = []
+    for td in row:
+        line.append(td.text.strip()) # put entries into new row
+        string = line[i].replace(' ', '')
+        string = string.replace('\n', '')
+        string = string.replace('\r', '')
+        string = string.replace("at", '')
+        f.write(string + " ")
+        i += 1
+        if (i == 14):
+        	i = 0
+        	f.write("\n")
+    data.append(line) # new row
+
